@@ -1,0 +1,36 @@
+{
+    "status": "1",
+    "regeocode": {
+        "addressComponent": {
+            "city": "焦作市",
+            "province": "河南省",
+            "adcode": "410802",
+            "district": "解放区",
+            "towncode": "410802001000",
+            "streetNumber": {
+                "number": "107号",
+                "location": "113.218142,35.243063",
+                "direction": "东 南",
+                "distance": "44.8828",
+                "street": "陶瓷路"
+            },
+            "country": "中国",
+            "township": "民生街道",
+            "businessAreas": [
+                []
+            ],
+            "building": {
+                "name": [],
+                "type": []
+            },
+            "neighborhood": {
+                "name": [],
+                "type": []
+            },
+            "citycode": "0391"
+        },
+        "formatted_address": "河南省焦作市解放区民生街道陶瓷路107号世纪新区"
+    },
+    "info": "OK",
+    "infocode": "10000"
+}
