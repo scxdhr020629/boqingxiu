@@ -56,6 +56,7 @@ const ContentIntro = ({ route, navigation }) => {
                 }
             }).catch(e => console.log(e));
 
+        console.log(UserInformation.ip + 'selectAppointById.php?orgId=' + orgId)
         fetch(UserInformation.ip + 'selectAppointById.php?orgId=' + orgId)
             .then(res => res.json())
             .then(resJson => {
@@ -64,16 +65,28 @@ const ContentIntro = ({ route, navigation }) => {
                     let date = new Date();
                     let zhou = ZHOU[(date.getDay()) % 7];
                     let day = `${date.getMonth() + 1}-${date.getDate()}`;
+                    var dateOrder = [];
+                    var orderIndex = 0;
+                    var indexBegin = -1;
 
-                    // console.log(zhou + day)
                     resJson.map((value, index) => {
-                        // console.log(resJson[index].timeName)
-                        // console.log((resJson[index].timeName) === (zhou + day))
                         if (resJson[index].timeName === (zhou + day)) {
-                            console.log(resJson.slice(index, index + 7))
-                            setAppointment(resJson.slice(index, index + 8));
+                            indexBegin = index;
+                            dateOrder[orderIndex++] = value;
+                        }
+                        if (indexBegin !== -1 && orderIndex < 7) {
+                            dateOrder[orderIndex++] = value
                         }
                     });
+
+                    while (orderIndex < 7) {
+                        dateOrder[orderIndex++] = {
+                            totalPlaces: 0,
+                            occupyPlaces: 0
+                        };
+                    }
+
+                    setAppointment(dateOrder);
                 }
             }).catch(e => console.log(e));
     }, []);
@@ -103,7 +116,9 @@ const ContentIntro = ({ route, navigation }) => {
                                 fontSize: 17,
                                 color: "rgba(240, 240, 253, 0.66)",
                             }}
-                            onPress={() => navigation.navigate("ContentService")}
+                            onPress={() => navigation.navigate("ContentService", {
+                                orgId: orgId
+                            })}
                         >
                             志愿服务
                         </Text>

@@ -13,6 +13,8 @@ import {
     FlatList,
     Image
 } from "react-native";
+import moment from "moment";
+import UserInformation from "./UserInformation";
 
 const { width, height } = Dimensions.get("screen");
 const Search = (prop) => {
@@ -21,44 +23,44 @@ const Search = (prop) => {
     const [data, setData] = useState();
     const [searchData, setSearchData] = useState();
 
-    const search = () => {
-        /**搜索 */
-
+    const search = async (content) => {
+        if (content === "") content = searchContent;
+        var ip = UserInformation.ip;
+        var id = UserInformation.id;
         isSearchClick(true);
-        setSearchData([
-            {
-                id: 1,
-                head: require("../data/img/home_7.png"),
-                name: "青山村融设计图书馆",
-                time: "每日9:00-18:00",
-                address: "杭州市余杭区黄湖镇青山村里东坞"
-            },
-            {
-                id: 2,
-                head: require("../data/img/home_8.png"),
-                name: "浙江余杭蜜梨“科技校园”",
-                time: "每日9:00-17:30",
-                address: "杭州市余姚区鸠鸟镇"
-            },
-            {
-                id: 3,
-                head: require("../data/img/home_9.png"),
-                name: "智慧网谷城市展示中心",
-                time: "周二-周日9:00-16:30",
-                address: "杭州市拱墅区湖州街16号"
-            },
-            {
-                id: 4,
-                head: require("../data/img/home_10.png"),
-                name: "上城埭村文化礼堂开放日",
-                time: "周一9:00-16:30",
-                address: "杭州市西湖区上城埭村道故山生活..."
-            }
-        ]);
+
+        await fetch(ip + 'selectHistoryByRecord.php?record=' + content)
+            .then(res => res.json())
+            .then(resJson => {
+                console.log(resJson)
+                var curTime = moment().format('YYYY-MM-DD HH:mm:ss');
+                if (resJson.length !== 0) {
+                    fetch(ip + 'updateHistoryTime.php?historyId=' + resJson[0].historyId + '&curTime=' + curTime);
+                }
+                else {
+                    fetch(ip + 'addRecord.php?userId=' + id + '&record=' + content + '&curTime=' + curTime);
+                }
+            })
+
+        await fetch(ip + 'search.php?info=' + content)
+            .then(res => res.json())
+            .then(resJson => {
+                setSearchData(resJson);
+            })
     }
 
-    const apply = () => {
-        /**更新数据库 */
+    const clickHistory = async () => {
+        isSearchClick(false);
+        fetch(UserInformation.ip + 'selectRecord.php?userId=' + UserInformation.id)
+            .then(res => res.json())
+            .then(resJson => {
+                setData(resJson.slice(0, 10));
+            })
+    }
+
+    const clickRecord = (record) => {
+        setSearchContent(record);
+        search(record);
     }
 
     const scrollItem = () => {
@@ -67,16 +69,17 @@ const Search = (prop) => {
                 {
                     data.map((value) => {
                         return (
-                            <TouchableOpacity style={{
-                                marginVertical: 5,
-                                borderWidth: 1,
-                                borderRadius: 10,
-                                width: 300,
-                                height: 30,
-                                alignItems: "center",
-                                justifyContent: "center"
-                            }}>
-                                <Text style={{ fontSize: 15 }}>{value}</Text>
+                            <TouchableOpacity onPress={() => clickRecord(value.record)}
+                                style={{
+                                    marginVertical: 5,
+                                    borderWidth: 1,
+                                    borderRadius: 10,
+                                    width: 280,
+                                    height: 30,
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}>
+                                <Text numberOfLines={1} style={{ fontSize: 15, paddingHorizontal: 10 }}>{value.record}</Text>
                             </TouchableOpacity>
                         );
                     })
@@ -92,11 +95,11 @@ const Search = (prop) => {
             })}>
                 <View style={styles.viewSearch}>
                     <View style={{ margin: 10 }}>
-                        <Image source={dataItem.item.head} style={styles.head} />
+                        <Image source={{ uri: dataItem.item.orgImg }} style={styles.head} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: "row" }}>
-                            <Text style={styles.searchName}>{dataItem.item.name}</Text>
+                            <Text style={styles.searchName}>{dataItem.item.orgName}</Text>
                         </View>
                         <Text style={styles.searchText}>{dataItem.item.time}</Text>
                         <Text style={styles.searchText}>{dataItem.item.address}</Text>
@@ -134,9 +137,15 @@ const Search = (prop) => {
         if (searchClick === true)
             return (
                 <View style={styles.search}>
+                    <TouchableOpacity style={{ alignSelf: "flex-end", marginRight: 15 }} onPress={() => clickHistory()}>
+                        <Ionicons name="paw-outline" size={28} style={{ color: "#789FFE" }} />
+                        <Text>足迹</Text>
+                    </TouchableOpacity>
+
                     <SafeAreaView>
                         <FlatList
                             data={searchData}
+                            keyExtractor={dataItem => dataItem.orgId}
                             renderItem={renderItem}
                             ItemSeparatorComponent={renderSeparator}
                         />
@@ -146,16 +155,13 @@ const Search = (prop) => {
     }
 
     useEffect(() => {
-        /**获取数据 */
-
-        setData([
-            "记录1",
-            "记录2",
-            "记录3"
-        ]);
+        fetch(UserInformation.ip + 'selectRecord.php?userId=' + UserInformation.id)
+            .then(res => res.json())
+            .then(resJson => {
+                setData(resJson.slice(0, 10));
+            })
     }, []);
 
-    console.log(data)
     if (data !== undefined)
         return (
             <View style={styles.container}>
@@ -189,7 +195,7 @@ const Search = (prop) => {
                                 style={{ width: 160, marginLeft: 30, fontSize: 14 }}
                             />
                         </View>
-                        <TouchableOpacity style={styles.btnSearch} onPress={() => search()}>
+                        <TouchableOpacity style={styles.btnSearch} onPress={() => search("")}>
                             <Text style={{ color: "#FFF", fontSize: 17 }}>搜索</Text>
                         </TouchableOpacity>
                     </View>

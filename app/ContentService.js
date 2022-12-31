@@ -12,15 +12,31 @@ import {
     TextInput,
     FlatList
 } from "react-native";
+import moment from "moment/moment";
+import UserInformation from "./UserInformation";
 
 const ContentService = ({ route, navigation }) => {
-    const [searchContent, setSearchContent] = useState();
+    const [searchContent, setSearchContent] = useState("");
     const [choice, setChoice] = useState(0);
     const [data, setData] = useState();
     const [displayData, setDisplayData] = useState([]);
+    const { orgId } = route.params;
 
-    const search = () => {
-        /**搜索,修改data */
+    const search = async () => {
+        await fetch(UserInformation.ip + 'searchVolunteer.php?orgId=' + orgId + '&info=' + searchContent)
+            .then(res => res.json())
+            .then(resJson => {
+                resJson = resJson.map((value) => {
+                    return ({
+                        ...value,
+                        color: "#FFF"
+                    });
+                });
+
+                setChoice(0);
+                setData(resJson);
+                setDisplayData(resJson);
+            })
 
     }
 
@@ -29,51 +45,46 @@ const ContentService = ({ route, navigation }) => {
     }
 
     const chooseService = (item) => {
-        let newItem, newData;
+        let newItem, newDisplayData;
         if (item.color === "#FFF") {
             newItem = { ...item };
             newItem.color = "#B6C3DE";
-            newData = [...data];
-            newData = newData.map((value) => {
-                if (value.id === item.id)
+            newDisplayData = [...displayData];
+            newDisplayData = newDisplayData.map((value) => {
+                if (value.recruitId === item.recruitId)
                     return newItem;
                 else return value;
             });
-            setData([...newData]);
+            setDisplayData([...newDisplayData]);
         }
         else {
             newItem = { ...item };
             newItem.color = "#FFF";
-            newData = [...data];
-            newData = newData.map((value) => {
-                if (value.id === item.id)
+            newDisplayData = [...displayData];
+            newDisplayData = newDisplayData.map((value) => {
+                if (value.recruitId === item.recruitId)
                     return newItem;
                 else return value;
             });
-            setData([...newData]);
+            setDisplayData([...newDisplayData]);
         }
     }
 
-    const displayService = (index, month, day) => {
+    const displayService = (index, year, month, day) => {
         setChoice(index);
 
         if (index === 0) setDisplayData([...data]);
         else {
-            let year = new Date().getFullYear();
             let chooseDate = year + "-" + month + "-" + day;
             let newDisplay = [];
             let displayIndex = 0;
 
             data.map((value) => {
-                console.log()
-                console.log((value.time.split(" "))[0])
-                console.log((value.time.split(" "))[0] === chooseDate)
-                if ((value.time.split(" "))[0] === chooseDate) {
+                if ((value.serveTime.split(" "))[0] === chooseDate) {
                     newDisplay[displayIndex++] = { ...value }
                 }
             });
 
-            console.log(newDisplay);
             setDisplayData([...newDisplay]);
         }
     }
@@ -105,7 +116,7 @@ const ContentService = ({ route, navigation }) => {
                             { marginRight: 15, marginLeft: 5, justifyContent: "center", alignItems: "center" },
                             (index === choice) ? styles.chose : {}
                         ]}
-                        onPress={() => displayService(index, month_day.getMonth() + 1, month_day.getDate())}
+                        onPress={() => displayService(index, month_day.getFullYear(), month_day.getMonth() + 1, month_day.getDate())}
                     >
                         <Text>{ZHOU[(date.getDay() + index - 1) % 7]}</Text>
                         <Text>{`${month_day.getMonth() + 1}-${month_day.getDate()}`}</Text>
@@ -123,19 +134,19 @@ const ContentService = ({ route, navigation }) => {
                     <View style={{ flexDirection: "row" }}>
                         <Text style={{ fontSize: 15 }}>时间：</Text>
                         <Text style={{ fontSize: 15, color: "#7080D0" }}>
-                            {dataItem.item.time}
+                            {dataItem.item.serveTime}
                         </Text>
                     </View>
                     <View style={{ flexDirection: "row", marginVertical: 10 }}>
                         <Text style={{ fontSize: 15 }}>地点：</Text>
-                        <Text style={{ fontSize: 15, color: "#7080D0" }}>
-                            {dataItem.item.place}
+                        <Text style={{ fontSize: 15, color: "#7080D0", flex: 1, lineHeight: 20 }}>
+                            {dataItem.item.serveAddress}
                         </Text>
                     </View>
                     <View style={{ flexDirection: "row" }}>
                         <Text style={{ fontSize: 15 }}>志愿内容：</Text>
                         <Text style={{ fontSize: 15, color: "#7080D0" }}>
-                            {dataItem.item.content}
+                            {dataItem.item.serveContent}
                         </Text>
                     </View>
                 </View>
@@ -144,41 +155,21 @@ const ContentService = ({ route, navigation }) => {
     }
 
     useEffect(() => {
-        /**获取该用户没有报名的志愿活动数据 */
+        var curTime = moment().format('YYYY-MM-DD HH:mm:ss');
 
-        setData([
-            {
-                id: 1,
-                time: "2022-12-22 9:00-12:00",
-                place: "二楼阅览室",
-                content: "整理书架",
-                color: "#FFF"
-            },
-            {
-                id: 2,
-                time: "2023-01-07 13:00-16:00",
-                place: "二楼阅览室",
-                content: "管理秩序，值班",
-                color: "#FFF"
-            }
-        ]);
+        fetch(UserInformation.ip + 'selectBoardByOrg.php?orgId=' + orgId + '&curTime=' + curTime)
+            .then(res => res.json())
+            .then(resJson => {
+                resJson = resJson.map((value) => {
+                    return ({
+                        ...value,
+                        color: "#FFF"
+                    });
+                });
 
-        setDisplayData([
-            {
-                id: 1,
-                time: "2022-12-22 9:00-12:00",
-                place: "二楼阅览室",
-                content: "整理书架",
-                color: "#FFF"
-            },
-            {
-                id: 2,
-                time: "2023-01-07 13:00-16:00",
-                place: "二楼阅览室",
-                content: "管理秩序，值班",
-                color: "#FFF"
-            }
-        ]);
+                setData(resJson);
+                setDisplayData(resJson);
+            })
     }, []);
 
     return (
@@ -197,7 +188,9 @@ const ContentService = ({ route, navigation }) => {
                             color: "rgba(240, 240, 253, 0.66)",
                             marginRight: 10,
                         }}
-                        onPress={() => navigation.navigate("ContentIntro")}
+                        onPress={() => navigation.navigate("ContentIntro", {
+                            orgId: orgId
+                        })}
                     >
                         介绍
                     </Text>
@@ -235,6 +228,7 @@ const ContentService = ({ route, navigation }) => {
                         data={displayData}
                         renderItem={renderItem}
                         ItemSeparatorComponent={<View style={{ height: 6 }} />}
+                        keyExtractor={dataItem => dataItem.recruitId}
                     />
                 </SafeAreaView>
             </View>

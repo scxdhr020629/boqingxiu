@@ -95,7 +95,7 @@ const Home = (prop) => {
                 <View style={{ flexDirection: "row", flex: 1 }}>
                     <SafeAreaView style={{ width: "50%", marginTop: 10 }}>
                         <FlatList
-                            data={data.slice(0, data.length / 2)}
+                            data={data.slice(0, data.length / 2 + 1)}
                             renderItem={renderItem}
                             ItemSeparatorComponent={<View style={{ height: 6 }} />}
                             showsVerticalScrollIndicator={false}
@@ -103,7 +103,7 @@ const Home = (prop) => {
                     </SafeAreaView>
                     <SafeAreaView style={{ width: "50%", marginTop: 10 }}>
                         <FlatList
-                            data={data.slice(data.length / 2, data.length)}
+                            data={data.slice(data.length / 2 + 1, data.length)}
                             renderItem={renderItem}
                             ItemSeparatorComponent={<View style={{ height: 6 }} />}
                             showsVerticalScrollIndicator={false}
