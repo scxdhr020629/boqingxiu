@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Text, StyleSheet, View, TextInput, TouchableNativeFeedback, Image, ActivityIndicator, Dimensions, StatusBar, ImageBackground, TouchableOpacity } from "react-native";
 import { ComposedGesture } from "react-native-gesture-handler/lib/typescript/handlers/gestures/gestureComposition";
+import UserInformation from "./UserInformation";
 
 
 const Mine = (prop) => {
 
+    const [name, setName] = useState("");
+    const [type, setType] = useState("");
+    const [totalTime, setTime] = useState(0);
+    //测试数据
     const mineDetail = [
         {
             Name: '吴卓霖',
@@ -12,6 +17,84 @@ const Mine = (prop) => {
             organization: '浙大城市学院',
         }
     ]
+
+    const fetchData = async () => {
+        var name;
+        var type;
+        var totalTime;
+        var userId = UserInformation.id;
+        var ip = UserInformation.ip;
+
+        await fetch(ip + 'selectUserByUserId.php?id=' + userId)
+            .then(res => res.json())
+            .then(resJson => {
+                if (resJson.length != 0) {
+                    name = resJson[0].name;
+                    type = resJson[0].type;
+                }
+            }).catch(e => console.log(e));
+        setName(name);
+        console.log("type");
+        console.log(type);
+        if (type === "1") { // normalUser
+            await fetch(ip + 'selectNormalUserByUserId.php?id=' + userId)
+                .then(res => res.json())
+                .then(resJson => {
+                    if (resJson.length != 0) {
+                        totalTime = resJson[0].totalTime;
+                    }
+                }).catch(e => console.log(e));
+            setType("大学生志愿者");
+            setTime(totalTime);
+            console.log(totalTime);
+        }
+        else {
+            // setTime(0);
+            setType("组织")
+        }
+    }
+    useEffect(() => {
+        // var name;
+        // var type;
+        // var totalTime;
+        // var userId = UserInformation.id;
+        // var ip = UserInformation.ip;
+
+        // fetch(ip + 'selectUserByUserId.php?id=' + userId)
+        //     .then(res => res.json())
+        //     .then(resJson => {
+        //         if (resJson.length != 0) {
+        //             name = resJson[0].name;
+        //             type = resJson[0].type;
+        //             setName(name)
+        //             console.log("type");
+        //             console.log(type);
+        //             if (type === 1) { // normalUser
+        //                 console.log("进入fetch之前");
+        //                 fetch(ip + 'selectNormalUserByUserId.php?id=' + userId)
+        //                     .then(res => res.json())
+        //                     .then(resJson => {
+        //                         console.log(resJson.length);
+        //                         if (resJson.length != 0) {
+        //                             totalTime = resJson[0].totalTime;
+        //                             console.log("totalTime是");
+        //                             console.log(totalTime);
+        //                             setType("大学生志愿者");
+        //                             setTime(totalTime);
+        //                         }
+        //                     }).catch(e => console.log(e));
+        //                 console.log("进入fetch之后");
+        //             }
+        //             else {
+        //                 // setTime(0);
+        //                 setType("组织")
+        //             }
+        //         }
+        //     }).catch(e => console.log(e));
+
+        fetchData();
+
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -23,8 +106,8 @@ const Mine = (prop) => {
                 <View style={styles.viewUserTop}>
                     <Image style={styles.imgUserTitle} source={require('../data/img/pot.png')} />
                 </View>
-                <Text style={styles.txtName}>微风zZ</Text>
-                <Text style={styles.vTime}>5小时</Text>
+                <Text style={styles.txtName}>{name}</Text>
+                <Text style={styles.vTime}>{totalTime}</Text>
                 <Text style={styles.vTxt}>活动时长</Text>
 
             </View>
