@@ -1,3 +1,4 @@
+// 未处理
 import React, { useEffect, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
@@ -26,7 +27,7 @@ const Infomation = ({ route, navigation }) => {
     useEffect(() => {
         /**获取数据 */
         setData({
-            
+
         });
     }, []);
 
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 25,
-        color:'#ffffff'
+        color: '#ffffff'
     },
     editView: {
         width: 30,

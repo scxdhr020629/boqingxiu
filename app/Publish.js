@@ -1,3 +1,4 @@
+// 未处理 似乎未被使用
 import React, { useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, View, TextInput, TouchableNativeFeedback, Image, ActivityIndicator, Dimensions, StatusBar, ImageBackground, SafeAreaView } from "react-native";

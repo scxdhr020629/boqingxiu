@@ -1,32 +1,75 @@
-import React, { useState } from "react";
+// 未处理 志愿报名的
+
+import React, { useEffect, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, View, TextInput, TouchableNativeFeedback, Image, ActivityIndicator, Dimensions, StatusBar, ImageBackground, SafeAreaView } from "react-native";
 import CheckBox from "@react-native-community/checkbox";
+import UserInformation from "./UserInformation";
 
 const ActivitySignup = (prop) => {
-    const DATA = [
-        {
-            id: '18',
-            title: '杭州融设计图书馆',
-            acttime: '2022-11-07',
-            actwhere: '浙江省杭州市余杭区',
-            details: '整理书架'
-        },
-        {
-            id: '19',
-            title: '杭州智慧谷服务中心',
-            acttime: '2022-11-10',
-            actwhere: '浙江省湖州市拱墅区',
-            details: '领导参观演讲'
-        },
-        {
-            id: '20',
-            title: '上城村文化礼堂开放日',
-            acttime: '2022-11-10',
-            actwhere: '浙江省湖州市拱墅区',
-            details: '维持秩序'
-        },
-    ];
+    // const DATA = [
+    //     {
+    //         id: '18',
+    //         title: '杭州融设计图书馆',
+    //         acttime: '2022-11-07',
+    //         actwhere: '浙江省杭州市余杭区',
+    //         details: '整理书架'
+    //     },
+    //     {
+    //         id: '19',
+    //         title: '杭州智慧谷服务中心',
+    //         acttime: '2022-11-10',
+    //         actwhere: '浙江省湖州市拱墅区',
+    //         details: '领导参观演讲'
+    //     },
+    //     {
+    //         id: '20',
+    //         title: '上城村文化礼堂开放日',
+    //         acttime: '2022-11-10',
+    //         actwhere: '浙江省湖州市拱墅区',
+    //         details: '维持秩序'
+    //     },
+    // ];
+
+
+    const fetchData = async () => {
+        var newData = [];
+        var resApplying;
+        var ip = UserInformation.ip;
+        //UserInformation 中存放的是userId
+        var userId = UserInformation.id;
+        await fetch(ip + 'selectApplyingBynUserId.php?nUserId=' + userId)
+            .then(res => res.json())
+            .then(resJson => {
+                resApplying = resJson;
+            }).catch(e => console.log(e));
+        console.log(resApplying);
+        for (var i = 0; i < resApplying.length; i++) {
+            var recruitId = resApplying[i].recruitId; // id
+            //查询recruitboard
+            var title;
+            var actwhere;
+            var acttime
+            var details;
+            await fetch(ip + 'selectRecruitBoardByrecruitId.php?recruitId=' + recruitId)
+                .then(res => res.json())
+                .then(resJson => {
+                    title = resJson[0].serveContent;
+                    actwhere = resJson[0].serveAddress;
+                    acttime = resJson[0].serveTime;
+                    details = resJson[0].code;
+                }).catch(e => console.log(e));
+            var tempObj = { id: recruitId, title: title, acttime: acttime, actwhere: actwhere, details: details }
+            // console.log(tempObj);
+            newData.push(tempObj);
+        }
+        setData([...newData]);
+    }
+    useEffect(() => {
+        // console.log("activity");
+        fetchData();
+        // console.log("fetch结束");
+    }, []);
 
     const Item = ({ title, acttime, actwhere, details }) => {
         const [agree, setAgree] = useState(false);
@@ -45,7 +88,7 @@ const ActivitySignup = (prop) => {
 
                     <Text style={styles.smalltitle}>时间：{acttime}</Text>
                     <Text style={styles.smalltitle}>地点：{actwhere}</Text>
-                    <Text style={styles.smalltitle}>志愿内容：{actwhere}</Text>
+                    <Text style={styles.smalltitle}>code：{details}</Text>
                 </View>
             </View>
 
@@ -119,7 +162,7 @@ const ActivitySignup = (prop) => {
                 </ScrollView>
             </SafeAreaView>
             <FlatList
-                data={DATA}
+                data={data}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
             />

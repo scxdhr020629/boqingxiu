@@ -8,22 +8,114 @@ import {
     SafeAreaView,
     ImageBackground,
     Image,
-    TouchableOpacity
+    TouchableOpacity,
+    Dimensions
 } from "react-native";
+import Tooltip from "./Tooltip";
 import UserInformation from "./UserInformation";
 
+const { width, height } = Dimensions.get("screen");
 const ContentIntro = ({ route, navigation }) => {
     const [choice, setChoice] = useState(0);
     const [data, setData] = useState();
     const [appointment, setAppointment] = useState();
+    const [hintIcon, setHintIcon] = useState("");
+    const [hintText, setHintText] = useState("");
     const { orgId } = route.params;
     const ZHOU = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const identity = UserInformation.identity;
 
-    const order = () => {
-        /**更新数据库 */
-        setData({ ...data, numOfOrder: data.numOfOrder + 1 });
+    /** 处理预约按钮 */
+    const order = async () => {
+        const ip = UserInformation.ip;
+        const account = UserInformation.account;
+
+        if (appointment[choice].order === "预约") {
+            var newOccupy = parseInt(appointment[choice].occupyPlaces) + 1;
+            var occupy = parseInt(appointment[choice].occupyPlaces);
+            var total = appointment[choice].totalPlaces;
+
+            if (total === "不限额" || occupy < parseInt(total)) {
+                await fetch(ip + 'selectOrdering.php?appointId=' + appointment[choice].appointId + '&nUserId=' + account)
+                    .then(res => res.json())
+                    .then(resJson => {
+                        console.log(resJson)
+                        if (resJson.length === 0) {
+                            fetch(ip + 'addOrdering.php?appointId=' + appointment[choice].appointId + '&nUserId=' + account);
+
+                            var newAppoint = appointment.map((value, index) => {
+                                if (index === choice)
+                                    return ({
+                                        ...value,
+                                        occupyPlaces: newOccupy,
+                                        order: "取消预约"
+                                    });
+                                else return { ...value };
+                            });
+                            setAppointment([...newAppoint]);
+                            fetch(ip + 'updateAppointOccupy.php?occupyPlaces=' + newOccupy + '&appointId=' + appointment[choice].appointId);
+
+                            setHintIcon("checkmark-outline");
+                            setHintText("预约成功");
+                            setTimeout(() => {
+                                setHintIcon("");
+                                setHintText("");
+                            }, 1000);
+                        }
+                        else {
+                            setHintIcon("alert-outline");
+                            setHintText("不能重复预约");
+                            setTimeout(() => {
+                                setHintIcon("");
+                                setHintText("");
+                            }, 2000);
+                        }
+                    })
+            }
+            else if (total == 0) {
+                setHintIcon("alert-outline");
+                setHintText("不能预约");
+                setTimeout(() => {
+                    setHintIcon("");
+                    setHintText("");
+                }, 2000);
+            }
+            else if (occupy >= parseInt(total)) {
+                setHintIcon("alert-outline");
+                setHintText("预约人数已满");
+                setTimeout(() => {
+                    setHintIcon("");
+                    setHintText("");
+                }, 2000);
+            }
+        }
+        else {
+            var newOccupy = parseInt(appointment[choice].occupyPlaces) - 1;
+
+            fetch(ip + 'deleteOrdering.php?appointId=' + appointment[choice].appointId + '&nUserId=' + account);
+
+            var newAppoint = appointment.map((value, index) => {
+                if (index === choice)
+                    return ({
+                        ...value,
+                        occupyPlaces: newOccupy,
+                        order: "预约"
+                    });
+                else return { ...value };
+            });
+            setAppointment([...newAppoint]);
+            fetch(ip + 'updateAppointOccupy.php?occupyPlaces=' + newOccupy + '&appointId=' + appointment[choice].appointId);
+
+            setHintIcon("checkmark-outline");
+            setHintText("取消预约成功");
+            setTimeout(() => {
+                setHintIcon("");
+                setHintText("");
+            }, 1000);
+        }
     }
 
+    /** 日期 */
     const scrollItem = () => {
         let dates = new Array(7).fill("");
         let date = new Date();
@@ -46,8 +138,9 @@ const ContentIntro = ({ route, navigation }) => {
     }
 
     useEffect(() => {
-        console.log(UserInformation.ip + 'selectOrgById.php?orgId=' + orgId)
-        fetch(UserInformation.ip + 'selectOrgById.php?orgId=' + orgId)
+        var ip = UserInformation.ip;
+
+        fetch(ip + 'selectOrgById.php?orgId=' + orgId)
             .then(res => res.json())
             .then(resJson => {
                 // console.log(resJson);
@@ -56,38 +149,54 @@ const ContentIntro = ({ route, navigation }) => {
                 }
             }).catch(e => console.log(e));
 
-        console.log(UserInformation.ip + 'selectAppointById.php?orgId=' + orgId)
-        fetch(UserInformation.ip + 'selectAppointById.php?orgId=' + orgId)
+        fetch(ip + 'selectOrderingByNUserId.php?nUserId=' + UserInformation.account)
             .then(res => res.json())
             .then(resJson => {
-                // console.log(resJson);
-                if (resJson.length !== 0) {
-                    let date = new Date();
-                    let zhou = ZHOU[(date.getDay()) % 7];
-                    let day = `${date.getMonth() + 1}-${date.getDate()}`;
-                    var dateOrder = [];
-                    var orderIndex = 0;
-                    var indexBegin = -1;
+                /** 登录用户已预约信息 */
+                var appointIds = [];
+                resJson.map((value) => {
+                    appointIds.push(value.appointId);
+                });
 
-                    resJson.map((value, index) => {
-                        if (resJson[index].timeName === (zhou + day)) {
-                            indexBegin = index;
-                            dateOrder[orderIndex++] = value;
+                fetch(ip + 'selectAppointById.php?orgId=' + orgId)
+                    .then(res => res.json())
+                    .then(resJson => {
+                        // console.log(resJson);
+                        if (resJson.length !== 0) {
+                            let date = new Date();
+                            let zhou = ZHOU[(date.getDay()) % 7];
+                            let day = `${date.getMonth() + 1}-${date.getDate()}`;
+                            var dateOrder = [];
+                            var orderIndex = 0;
+                            var indexBegin = -1;
+
+                            resJson.map((value, index) => {
+                                if (resJson[index].timeName === (zhou + day)) {
+                                    indexBegin = index;
+                                    dateOrder[orderIndex++] = {
+                                        ...value,
+                                        order: appointIds.includes(value.appointId) ? "取消预约" : "预约"
+                                    };
+                                }
+                                else if (indexBegin !== -1 && orderIndex < 7) {
+                                    dateOrder[orderIndex++] = {
+                                        ...value,
+                                        order: appointIds.includes(value.appointId) ? "取消预约" : "预约"
+                                    };
+                                }
+                            });
+
+                            while (orderIndex < 7) {
+                                dateOrder[orderIndex++] = {
+                                    totalPlaces: 0,
+                                    occupyPlaces: 0,
+                                    order: "预约"
+                                };
+                            }
+
+                            setAppointment(dateOrder);
                         }
-                        if (indexBegin !== -1 && orderIndex < 7) {
-                            dateOrder[orderIndex++] = value
-                        }
-                    });
-
-                    while (orderIndex < 7) {
-                        dateOrder[orderIndex++] = {
-                            totalPlaces: 0,
-                            occupyPlaces: 0
-                        };
-                    }
-
-                    setAppointment(dateOrder);
-                }
+                    }).catch(e => console.log(e));
             }).catch(e => console.log(e));
     }, []);
 
@@ -217,26 +326,31 @@ const ContentIntro = ({ route, navigation }) => {
                 }}>
                     <Text style={{ color: "#FFF", marginLeft: 10, fontSize: 16 }}>
                         预约人数：
-                        <Text style={{ color: "#E2D664" }}>{appointment[choice].totalPlaces}</Text>
-                        {`/${appointment[choice].occupyPlaces}`}
+                        <Text style={{ color: "#E2D664" }}>{appointment[choice].occupyPlaces}</Text>
+                        {`/${appointment[choice].totalPlaces}`}
                     </Text>
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: "#CBD2F6",
-                            borderRadius: 20,
-                            height: "70%",
-                            width: 65,
-                            justifyContent: "center",
-                            alignItems: "center",
-                            elevation: 2,
-                            position: "absolute",
-                            right: 20
-                        }}
-                        onPress={() => order()}
-                    >
-                        <Text style={{ color: "#000", fontSize: 15 }}>预约</Text>
-                    </TouchableOpacity>
+                    {
+                        identity === "普通用户" ?
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: appointment[choice].order === "预约" ? "#FFF" : "#D9D9D9",
+                                    borderRadius: 10,
+                                    height: "70%",
+                                    paddingHorizontal: 15,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    elevation: 2,
+                                    position: "absolute",
+                                    right: 20
+                                }}
+                                onPress={() => order()}
+                            >
+                                <Text style={{ color: "#000", fontSize: 15 }}>{appointment[choice].order}</Text>
+                            </TouchableOpacity>
+                            : null
+                    }
                 </View>
+                {Tooltip(hintIcon, hintText, height)}
             </View>
         );
 }

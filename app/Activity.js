@@ -1,7 +1,7 @@
+//未处理 预约参观的 √
+//取消报名未做
 
-
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
     Text,
@@ -21,29 +21,80 @@ import {
 } from "react-native";
 import CheckBox from "@react-native-community/checkbox";
 import { color } from "react-native-reanimated";
+import UserInformation from "./UserInformation";
 
 const Activity = (prop, navigation) => {
-    const DATA = [
-        {
-            id: '18',
-            title: '杭州融设计图书馆',
-            acttime: '2022-11-07',
-            actwhere: '浙江省杭州市余杭区',
-        },
-        {
-            id: '19',
-            title: '杭州智慧谷服务中心',
-            acttime: '2022-11-10',
-            actwhere: '浙江省湖州市拱墅区',
-        },
-        {
-            id: '20',
-            title: '上城村文化礼堂开放日',
-            acttime: '2022-11-10',
-            actwhere: '浙江省湖州市拱墅区',
-        },
-    ];
+    // const DATA = [
+    //     {
+    //         id: '18',
+    //         title: '杭州融设计图书馆',
+    //         acttime: '2022-11-07',
+    //         actwhere: '浙江省杭州市余杭区',
+    //     },
+    //     {
+    //         id: '19',
+    //         title: '杭州智慧谷服务中心',
+    //         acttime: '2022-11-10',
+    //         actwhere: '浙江省湖州市拱墅区',
+    //     },
+    //     {
+    //         id: '20',
+    //         title: '上城村文化礼堂开放日',
+    //         acttime: '2022-11-10',
+    //         actwhere: '浙江省湖州市拱墅区',
+    //     },
+    // ];
 
+    const fetchData = async () => {
+        // 注意使用的其实都是userId
+        var newData = [];
+        var resOrdering;
+        var ip = UserInformation.ip;
+        var nUserId = UserInformation.id;
+        // console.log("查询之前");
+        // console.log("nUserId " + nUserId);
+        await fetch(ip + 'selectOrderingBynUserId.php?nUserId=' + nUserId)
+            .then(res => res.json())
+            .then(resJson => {
+                resOrdering = resJson;
+            }).catch(e => console.log(e));
+        // console.log(resOrdering);
+        for (var i = 0; i < resOrdering.length; i++) {
+            var appointId;
+            appointId = resOrdering[i].appointId;
+            var orgId;
+            var timeName;
+            //查询出来appointment
+            await fetch(ip + 'selectAppointment.php?id=' + appointId)
+                .then(res => res.json())
+                .then(resJson => {
+                    // msgJsonAll = resJson;
+                    orgId = resJson[0].orgId;
+                    timeName = resJson[0].timeName;
+                }).catch(e => console.log(e));
+            //查询组织地址
+            var title;
+            var address;
+            await fetch(ip + 'selectOrgById.php?orgId=' + orgId)
+                .then(res => res.json())
+                .then(resJson => {
+                    title = resJson[0].orgName;
+                    address = resJson[0].address;
+                }).catch(e => console.log(e));
+            // 设置物体
+            var tempObj = { id: appointId, title: title, acttime: timeName, actwhere: address };
+            // console.log("输出开始");
+            // console.log(tempObj);
+            newData.push(tempObj);
+        }
+        // console.log("newData " + newData);
+        setData([...newData]);
+    }
+    useEffect(() => {
+        // console.log("activity");
+        fetchData();
+        // console.log("fetch结束");
+    }, []);
     const Item = ({ title, acttime, actwhere }) => {
         const [agree, setAgree] = useState(false);
         //const url=~~DATA.imageFound
@@ -134,7 +185,7 @@ const Activity = (prop, navigation) => {
                 </ScrollView>
             </SafeAreaView>
             <FlatList
-                data={DATA}
+                data={data}
                 renderItem={renderItem}
                 keyExtractor={item => item.id}
             />

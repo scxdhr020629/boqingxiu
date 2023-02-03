@@ -1,3 +1,4 @@
+// 未处理完成
 import React, { useState, useEffect } from "react";
 import { Text, StyleSheet, View, TextInput, TouchableNativeFeedback, Image, ActivityIndicator, Dimensions, StatusBar, ImageBackground, TouchableOpacity } from "react-native";
 import { ComposedGesture } from "react-native-gesture-handler/lib/typescript/handlers/gestures/gestureComposition";

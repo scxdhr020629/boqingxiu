@@ -10,20 +10,30 @@ import {
     Image,
     TouchableOpacity,
     TextInput,
-    FlatList
+    FlatList,
+    Dimensions
 } from "react-native";
 import moment from "moment/moment";
 import UserInformation from "./UserInformation";
+import Tooltip from "./Tooltip";
 
+const { width, height } = Dimensions.get("screen");
 const ContentService = ({ route, navigation }) => {
     const [searchContent, setSearchContent] = useState("");
-    const [choice, setChoice] = useState(0);
+    const [chooseDate, serChooseDate] = useState(0);
+    const [choices, setChoices] = useState([]);
+    const [totalDots, setTotalDots] = useState(0);
+    const [dots, setDots] = useState([0, 0, 0, 0, 0, 0, 0]);
     const [data, setData] = useState();
     const [displayData, setDisplayData] = useState([]);
+    const [hintIcon, setHintIcon] = useState("");
+    const [hintText, setHintText] = useState("");
     const { orgId } = route.params;
+    const account = UserInformation.account;
+    const ip = UserInformation.ip;
 
     const search = async () => {
-        await fetch(UserInformation.ip + 'searchVolunteer.php?orgId=' + orgId + '&info=' + searchContent)
+        await fetch(ip + 'searchVolunteer.php?orgId=' + orgId + '&info=' + searchContent + '&nUserId=' + account)
             .then(res => res.json())
             .then(resJson => {
                 resJson = resJson.map((value) => {
@@ -33,45 +43,113 @@ const ContentService = ({ route, navigation }) => {
                     });
                 });
 
-                setChoice(0);
+                serChooseDate(0);
                 setData(resJson);
                 setDisplayData(resJson);
             })
 
     }
 
-    const apply = () => {
-        /**报名,更新数据库 */
+    const apply = async () => {
+        var values = "";
+        choices.map((value, index) => {
+            if (index === 0)
+                values += "(" + account + ", " + value + ")";
+            else
+                values += ", (" + account + ", " + value + ")";
+        });
+
+        await fetch(ip + 'addApplyingCycle.php?values=' + values);
+
+        var curTime = moment().format('YYYY-MM-DD HH:mm:ss');
+        await fetch(ip + 'selectBoardByOrg.php?orgId=' + orgId + '&curTime=' + curTime + '&nUserId=' + account)
+            .then(res => res.json())
+            .then(resJson => {
+                resJson = resJson.map((value) => {
+                    return ({
+                        ...value,
+                        color: "#FFF"
+                    });
+                });
+
+                setData(resJson);
+                setDisplayData(resJson);
+                serChooseDate(0);
+                setChoices([]);
+                setTotalDots(0);
+                setDots([0, 0, 0, 0, 0, 0, 0]);
+
+                setHintIcon("checkmark-outline");
+                setHintText("报名成功");
+                setTimeout(() => {
+                    setHintIcon("");
+                    setHintText("");
+                }, 1000);
+            })
     }
 
     const chooseService = (item) => {
-        let newItem, newDisplayData;
+        var newDisplayData, newData;
+        var itemTime = item.serveTime;
+
         if (item.color === "#FFF") {
-            newItem = { ...item };
-            newItem.color = "#B6C3DE";
-            newDisplayData = [...displayData];
-            newDisplayData = newDisplayData.map((value) => {
-                if (value.recruitId === item.recruitId)
-                    return newItem;
-                else return value;
-            });
-            setDisplayData([...newDisplayData]);
+            let newChoices = [...choices];
+            newChoices.push(item.recruitId);
+            setChoices([...newChoices]);
+
+            let newDots = [...dots];
+            if ((itemTime.split(" "))[0] === moment().format('YYYY-M-D')) newDots[0] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(1, "days").format('YYYY-M-D')) newDots[1] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(2, "days").format('YYYY-M-D')) newDots[2] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(3, "days").format('YYYY-M-D')) newDots[3] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(4, "days").format('YYYY-M-D')) newDots[4] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(5, "days").format('YYYY-M-D')) newDots[5] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(6, "days").format('YYYY-M-D')) newDots[6] += 1;
+            setDots([...newDots]);
+            setTotalDots(totalDots + 1);
         }
         else {
-            newItem = { ...item };
-            newItem.color = "#FFF";
-            newDisplayData = [...displayData];
-            newDisplayData = newDisplayData.map((value) => {
-                if (value.recruitId === item.recruitId)
-                    return newItem;
-                else return value;
-            });
-            setDisplayData([...newDisplayData]);
+            let newChoices = [...choices];
+            newChoices = newChoices.filter(element => element != item.recruitId);
+            setChoices([...newChoices]);
+
+            let newDots = [...dots];
+            if ((itemTime.split(" "))[0] === moment().format('YYYY-M-D')) newDots[0] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(1, "days").format('YYYY-M-D')) newDots[1] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(2, "days").format('YYYY-M-D')) newDots[2] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(3, "days").format('YYYY-M-D')) newDots[3] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(4, "days").format('YYYY-M-D')) newDots[4] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(5, "days").format('YYYY-M-D')) newDots[5] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(6, "days").format('YYYY-M-D')) newDots[6] -= 1;
+            setDots([...newDots]);
+            setTotalDots(totalDots - 1);
         }
+
+        /** 修改displayData的color */
+        newDisplayData = displayData.map((value) => {
+            if (value.recruitId === item.recruitId)
+                return {
+                    ...value,
+                    color: value.color === "#FFF" ? "#B6C3DE" : "#FFF"
+                };
+            else return value;
+        });
+        setDisplayData([...newDisplayData]);
+
+        /** 修改data的color */
+        newData = data.map((value) => {
+            if (value.recruitId === item.recruitId)
+                return {
+                    ...value,
+                    color: value.color === "#FFF" ? "#B6C3DE" : "#FFF"
+                };
+            else return value;
+        });
+        setData([...newData]);
     }
 
     const displayService = (index, year, month, day) => {
-        setChoice(index);
+        serChooseDate(index);
 
         if (index === 0) setDisplayData([...data]);
         else {
@@ -96,32 +174,46 @@ const ContentService = ({ route, navigation }) => {
             '周三', '周四', '周五', '周六'];
 
         return dates.map((value, index) => {
-            let month_day = new Date(date.getTime() + index * 24 * 3600 * 1000);
             if (index === 0)
                 return (
                     <TouchableOpacity
                         style={[
                             { marginRight: 15, marginLeft: 5, justifyContent: "center", alignItems: "center" },
-                            (index === choice) ? styles.chose : {}
+                            (index === chooseDate) ? styles.chose : {}
                         ]}
                         onPress={() => displayService(index)}
                     >
+                        {
+                            totalDots === 0 ? null :
+                                <View style={styles.dotView}>
+                                    <Text style={styles.dotText}>{totalDots}</Text>
+                                </View>
+                        }
                         <Text>全部</Text>
                     </TouchableOpacity>
                 );
-            else
+            else {
+                let month_day = new Date(date.getTime() + (index - 1) * 24 * 3600 * 1000);
+
                 return (
                     <TouchableOpacity
                         style={[
                             { marginRight: 15, marginLeft: 5, justifyContent: "center", alignItems: "center" },
-                            (index === choice) ? styles.chose : {}
+                            (index === chooseDate) ? styles.chose : {}
                         ]}
                         onPress={() => displayService(index, month_day.getFullYear(), month_day.getMonth() + 1, month_day.getDate())}
                     >
-                        <Text>{ZHOU[(date.getDay() + index - 1) % 7]}</Text>
+                        {
+                            dots[index - 1] === 0 ? null :
+                                <View style={styles.dotView}>
+                                    <Text style={styles.dotText}>{dots[index - 1]}</Text>
+                                </View>
+                        }
+                        <Text style={{ marginTop: dots[index - 1] === 0 ? 0 : 10 }}>{ZHOU[(date.getDay() + index - 1) % 7]}</Text>
                         <Text>{`${month_day.getMonth() + 1}-${month_day.getDate()}`}</Text>
                     </TouchableOpacity>
                 );
+            }
         })
     }
 
@@ -157,7 +249,7 @@ const ContentService = ({ route, navigation }) => {
     useEffect(() => {
         var curTime = moment().format('YYYY-MM-DD HH:mm:ss');
 
-        fetch(UserInformation.ip + 'selectBoardByOrg.php?orgId=' + orgId + '&curTime=' + curTime)
+        fetch(ip + 'selectBoardByOrg.php?orgId=' + orgId + '&curTime=' + curTime + '&nUserId=' + account)
             .then(res => res.json())
             .then(resJson => {
                 resJson = resJson.map((value) => {
@@ -169,9 +261,14 @@ const ContentService = ({ route, navigation }) => {
 
                 setData(resJson);
                 setDisplayData(resJson);
+                serChooseDate(0);
+                setChoices([]);
+                setTotalDots(0);
+                setDots([0, 0, 0, 0, 0, 0, 0]);
             })
     }, []);
 
+    console.log(choices)
     return (
         <View style={styles.container}>
             <ImageBackground source={require("../data/img/content_1.png")} style={{ width: "100%", height: 80 }}>
@@ -203,7 +300,7 @@ const ContentService = ({ route, navigation }) => {
                     </Text>
                 </View>
             </ImageBackground>
-            <View style={{ width: "100%", alignItems: "center" }}>
+            <View style={{ width: "100%", alignItems: "center", flex: 1 }}>
                 <View style={styles.searchView}>
                     <TextInput
                         value={searchContent}
@@ -223,12 +320,13 @@ const ContentService = ({ route, navigation }) => {
                         {scrollItem()}
                     </ScrollView>
                 </SafeAreaView>
-                <SafeAreaView style={{ width: "100%", marginTop: 10 }}>
+                <SafeAreaView style={{ width: "100%", marginTop: 10, flex: 1, marginBottom: 50 }}>
                     <FlatList
                         data={displayData}
                         renderItem={renderItem}
                         ItemSeparatorComponent={<View style={{ height: 6 }} />}
                         keyExtractor={dataItem => dataItem.recruitId}
+                        showsVerticalScrollIndicator={false}
                     />
                 </SafeAreaView>
             </View>
@@ -238,6 +336,7 @@ const ContentService = ({ route, navigation }) => {
             >
                 <Text style={{ color: "#FFF", fontSize: 19 }}>报名</Text>
             </TouchableOpacity>
+            {Tooltip(hintIcon, hintText, height)}
         </View>
     );
 }
@@ -286,7 +385,6 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     itemsView: {
-        width: "100%",
         flexDirection: "row",
         width: "90%",
         alignSelf: "center",
@@ -315,6 +413,22 @@ const styles = StyleSheet.create({
         backgroundColor: "#7B9DF6",
         borderRadius: 5,
         padding: 10
+    },
+    dotView: {
+        position: "absolute",
+        top: 0,
+        backgroundColor: "#F00",
+        borderRadius: 50,
+        width: 13,
+        height: 13,
+        alignItems: 'center',
+        justifyContent: "center"
+    },
+    dotText: {
+        color: "#FFF",
+        fontSize: 10,
+        textAlign: "center",
+        textAlignVertical: "center"
     }
 });
 
