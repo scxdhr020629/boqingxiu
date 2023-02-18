@@ -20,6 +20,8 @@ const Chat = ({ route, navigation }) => {
     const [nowMsg, setNowMsg] = useState("");
     // const { name } = route.params;
     const { orgId } = route.params;
+
+    /**聊天内容 */
     const renderItem = (dataItem) => {
         if (dataItem.item.meId === UserInformation.id)
             return (
@@ -121,12 +123,11 @@ const Chat = ({ route, navigation }) => {
         }
         setData([...newData]);
     }
+
     useEffect(() => {
-        // console.log("使用useEffect");
-        // fetchData();
-        // const interval = setInterval(fetchData, 5000); // 每隔5分钟執行 loadData 這個 function
         fetchData();
         const interval = setInterval(fetchData, 5000); // 每隔5分钟執行 loadData 這個 function
+
         return () => clearInterval(interval);
     }, []);
 

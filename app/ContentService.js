@@ -20,7 +20,7 @@ import Tooltip from "./Tooltip";
 const { width, height } = Dimensions.get("screen");
 const ContentService = ({ route, navigation }) => {
     const [searchContent, setSearchContent] = useState("");
-    const [chooseDate, serChooseDate] = useState(0);
+    const [chooseDate, setChooseDate] = useState(0);
     const [choices, setChoices] = useState([]);
     const [totalDots, setTotalDots] = useState(0);
     const [dots, setDots] = useState([0, 0, 0, 0, 0, 0, 0]);
@@ -32,6 +32,7 @@ const ContentService = ({ route, navigation }) => {
     const account = UserInformation.account;
     const ip = UserInformation.ip;
 
+    /**搜索志愿服务信息 */
     const search = async () => {
         await fetch(ip + 'searchVolunteer.php?orgId=' + orgId + '&info=' + searchContent + '&nUserId=' + account)
             .then(res => res.json())
@@ -43,13 +44,14 @@ const ContentService = ({ route, navigation }) => {
                     });
                 });
 
-                serChooseDate(0);
+                setChooseDate(0);
                 setData(resJson);
                 setDisplayData(resJson);
             })
 
     }
 
+    /**报名按钮响应 */
     const apply = async () => {
         var values = "";
         choices.map((value, index) => {
@@ -74,7 +76,7 @@ const ContentService = ({ route, navigation }) => {
 
                 setData(resJson);
                 setDisplayData(resJson);
-                serChooseDate(0);
+                setChooseDate(0);
                 setChoices([]);
                 setTotalDots(0);
                 setDots([0, 0, 0, 0, 0, 0, 0]);
@@ -88,6 +90,7 @@ const ContentService = ({ route, navigation }) => {
             })
     }
 
+    /**多选志愿服务活动 */
     const chooseService = (item) => {
         var newDisplayData, newData;
         var itemTime = item.serveTime;
@@ -98,13 +101,13 @@ const ContentService = ({ route, navigation }) => {
             setChoices([...newChoices]);
 
             let newDots = [...dots];
-            if ((itemTime.split(" "))[0] === moment().format('YYYY-M-D')) newDots[0] += 1;
-            else if ((itemTime.split(" "))[0] === moment().add(1, "days").format('YYYY-M-D')) newDots[1] += 1;
-            else if ((itemTime.split(" "))[0] === moment().add(2, "days").format('YYYY-M-D')) newDots[2] += 1;
-            else if ((itemTime.split(" "))[0] === moment().add(3, "days").format('YYYY-M-D')) newDots[3] += 1;
-            else if ((itemTime.split(" "))[0] === moment().add(4, "days").format('YYYY-M-D')) newDots[4] += 1;
-            else if ((itemTime.split(" "))[0] === moment().add(5, "days").format('YYYY-M-D')) newDots[5] += 1;
-            else if ((itemTime.split(" "))[0] === moment().add(6, "days").format('YYYY-M-D')) newDots[6] += 1;
+            if ((itemTime.split(" "))[0] === moment().format('YYYY-MM-DD')) newDots[0] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(1, "days").format('YYYY-MM-DD')) newDots[1] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(2, "days").format('YYYY-MM-DD')) newDots[2] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(3, "days").format('YYYY-MM-DD')) newDots[3] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(4, "days").format('YYYY-MM-DD')) newDots[4] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(5, "days").format('YYYY-MM-DD')) newDots[5] += 1;
+            else if ((itemTime.split(" "))[0] === moment().add(6, "days").format('YYYY-MM-DD')) newDots[6] += 1;
             setDots([...newDots]);
             setTotalDots(totalDots + 1);
         }
@@ -114,13 +117,13 @@ const ContentService = ({ route, navigation }) => {
             setChoices([...newChoices]);
 
             let newDots = [...dots];
-            if ((itemTime.split(" "))[0] === moment().format('YYYY-M-D')) newDots[0] -= 1;
-            else if ((itemTime.split(" "))[0] === moment().add(1, "days").format('YYYY-M-D')) newDots[1] -= 1;
-            else if ((itemTime.split(" "))[0] === moment().add(2, "days").format('YYYY-M-D')) newDots[2] -= 1;
-            else if ((itemTime.split(" "))[0] === moment().add(3, "days").format('YYYY-M-D')) newDots[3] -= 1;
-            else if ((itemTime.split(" "))[0] === moment().add(4, "days").format('YYYY-M-D')) newDots[4] -= 1;
-            else if ((itemTime.split(" "))[0] === moment().add(5, "days").format('YYYY-M-D')) newDots[5] -= 1;
-            else if ((itemTime.split(" "))[0] === moment().add(6, "days").format('YYYY-M-D')) newDots[6] -= 1;
+            if ((itemTime.split(" "))[0] === moment().format('YYYY-MM-DD')) newDots[0] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(1, "days").format('YYYY-MM-DD')) newDots[1] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(2, "days").format('YYYY-MM-DD')) newDots[2] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(3, "days").format('YYYY-MM-DD')) newDots[3] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(4, "days").format('YYYY-MM-DD')) newDots[4] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(5, "days").format('YYYY-MM-DD')) newDots[5] -= 1;
+            else if ((itemTime.split(" "))[0] === moment().add(6, "days").format('YYYY-MM-DD')) newDots[6] -= 1;
             setDots([...newDots]);
             setTotalDots(totalDots - 1);
         }
@@ -148,8 +151,9 @@ const ContentService = ({ route, navigation }) => {
         setData([...newData]);
     }
 
+    /**滚动条时间选择 */
     const displayService = (index, year, month, day) => {
-        serChooseDate(index);
+        setChooseDate(index);
 
         if (index === 0) setDisplayData([...data]);
         else {
@@ -157,6 +161,7 @@ const ContentService = ({ route, navigation }) => {
             let newDisplay = [];
             let displayIndex = 0;
 
+            console.log(chooseDate)
             data.map((value) => {
                 if ((value.serveTime.split(" "))[0] === chooseDate) {
                     newDisplay[displayIndex++] = { ...value }
@@ -167,6 +172,7 @@ const ContentService = ({ route, navigation }) => {
         }
     }
 
+    /**时间滚动条 */
     const scrollItem = () => {
         let dates = new Array(8).fill("");
         let date = new Date();
@@ -201,7 +207,9 @@ const ContentService = ({ route, navigation }) => {
                             { marginRight: 15, marginLeft: 5, justifyContent: "center", alignItems: "center" },
                             (index === chooseDate) ? styles.chose : {}
                         ]}
-                        onPress={() => displayService(index, month_day.getFullYear(), month_day.getMonth() + 1, month_day.getDate())}
+                        onPress={() => displayService(index, month_day.getFullYear(),
+                            (month_day.getMonth() + 1 < 10) ? '0' + (month_day.getMonth() + 1) : month_day.getMonth() + 1,
+                            (month_day.getDate() < 10) ? '0' + month_day.getDate() : month_day.getDate())}
                     >
                         {
                             dots[index - 1] === 0 ? null :
@@ -217,6 +225,7 @@ const ContentService = ({ route, navigation }) => {
         })
     }
 
+    /**志愿服务活动 */
     const renderItem = (dataItem) => {
         return (
             <TouchableOpacity style={[styles.itemsView, { backgroundColor: dataItem.item.color }]}
@@ -261,7 +270,7 @@ const ContentService = ({ route, navigation }) => {
 
                 setData(resJson);
                 setDisplayData(resJson);
-                serChooseDate(0);
+                setChooseDate(0);
                 setChoices([]);
                 setTotalDots(0);
                 setDots([0, 0, 0, 0, 0, 0, 0]);

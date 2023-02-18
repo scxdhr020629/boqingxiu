@@ -13,9 +13,6 @@ import {
 import UserInformation from "./UserInformation";
 import Geo from "./Geo";
 
-//左上角的定位没做，address获取定位
-//下方组织仅为测试页面数据，要改的，连接数据库
-
 const Home = (prop) => {
     const [address, setAddress] = useState("定位");
     const [data, setData] = useState();

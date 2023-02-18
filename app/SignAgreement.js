@@ -46,7 +46,7 @@ const SignAgreement = (prop) => {
         if (color === "#8492FF") {
             if (GlobalInfo.isTiming === true) {
                 setHintIcon("alert-outline");
-                setHintText("您有正在服务的志愿活动，不能重复服务");   //需改，具体出错信息
+                setHintText("您有正在服务的志愿活动，不能重复服务");
                 setTimeout(() => {
                     setHintIcon("");
                     setHintText("");

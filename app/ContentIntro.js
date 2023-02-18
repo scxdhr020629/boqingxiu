@@ -161,7 +161,7 @@ const ContentIntro = ({ route, navigation }) => {
                 fetch(ip + 'selectAppointById.php?orgId=' + orgId)
                     .then(res => res.json())
                     .then(resJson => {
-                        // console.log(resJson);
+                        console.log(resJson);
                         if (resJson.length !== 0) {
                             let date = new Date();
                             let zhou = ZHOU[(date.getDay()) % 7];
@@ -171,7 +171,7 @@ const ContentIntro = ({ route, navigation }) => {
                             var indexBegin = -1;
 
                             resJson.map((value, index) => {
-                                if (resJson[index].timeName === (zhou + day)) {
+                                if (resJson[index].timeName === (day + zhou)) {
                                     indexBegin = index;
                                     dateOrder[orderIndex++] = {
                                         ...value,

@@ -1,13 +1,12 @@
 // 未处理完成
 import React, { useState, useEffect } from "react";
-import { Text, StyleSheet, View, TextInput, TouchableNativeFeedback, Image, ActivityIndicator, Dimensions, StatusBar, ImageBackground, TouchableOpacity } from "react-native";
-import { ComposedGesture } from "react-native-gesture-handler/lib/typescript/handlers/gestures/gestureComposition";
+import { Text, StyleSheet, View, TextInput, Image, Dimensions, TouchableOpacity } from "react-native";
 import UserInformation from "./UserInformation";
 
 
 const Mine = (prop) => {
-
     const [name, setName] = useState("");
+    const [head, setHead] = useState("");
     const [type, setType] = useState("");
     const [totalTime, setTime] = useState(0);
     //测试数据
@@ -18,6 +17,10 @@ const Mine = (prop) => {
             organization: '浙大城市学院',
         }
     ]
+
+    const exit = () => {
+        prop.navigation.navigate('Login');
+    }
 
     const fetchData = async () => {
         var name;
@@ -43,6 +46,7 @@ const Mine = (prop) => {
                 .then(resJson => {
                     if (resJson.length != 0) {
                         totalTime = resJson[0].totalTime;
+                        setHead(resJson[0].nUserImg)
                     }
                 }).catch(e => console.log(e));
             setType("大学生志愿者");
@@ -55,46 +59,7 @@ const Mine = (prop) => {
         }
     }
     useEffect(() => {
-        // var name;
-        // var type;
-        // var totalTime;
-        // var userId = UserInformation.id;
-        // var ip = UserInformation.ip;
-
-        // fetch(ip + 'selectUserByUserId.php?id=' + userId)
-        //     .then(res => res.json())
-        //     .then(resJson => {
-        //         if (resJson.length != 0) {
-        //             name = resJson[0].name;
-        //             type = resJson[0].type;
-        //             setName(name)
-        //             console.log("type");
-        //             console.log(type);
-        //             if (type === 1) { // normalUser
-        //                 console.log("进入fetch之前");
-        //                 fetch(ip + 'selectNormalUserByUserId.php?id=' + userId)
-        //                     .then(res => res.json())
-        //                     .then(resJson => {
-        //                         console.log(resJson.length);
-        //                         if (resJson.length != 0) {
-        //                             totalTime = resJson[0].totalTime;
-        //                             console.log("totalTime是");
-        //                             console.log(totalTime);
-        //                             setType("大学生志愿者");
-        //                             setTime(totalTime);
-        //                         }
-        //                     }).catch(e => console.log(e));
-        //                 console.log("进入fetch之后");
-        //             }
-        //             else {
-        //                 // setTime(0);
-        //                 setType("组织")
-        //             }
-        //         }
-        //     }).catch(e => console.log(e));
-
         fetchData();
-
     }, []);
 
     return (
@@ -105,7 +70,7 @@ const Mine = (prop) => {
 
             <View style={styles.viewUser}>
                 <View style={styles.viewUserTop}>
-                    <Image style={styles.imgUserTitle} source={require('../data/img/pot.png')} />
+                    <Image style={styles.imgUserTitle} source={{ uri: head }} />
                 </View>
                 <Text style={styles.txtName}>{name}</Text>
                 <Text style={styles.vTime}>{totalTime}</Text>
@@ -116,68 +81,50 @@ const Mine = (prop) => {
                 <Image style={styles.adverimage} source={require('../data/img/advertiseme.png')} />
             </View>
 
-            <View style={styles.twoPage}>
-                <TouchableOpacity style={styles.touchPage}>
-                    <Image source={require('../data/img/server.png')} style={styles.imagestyle}></Image>
-                    <View >
-                        <View >
-                            <Text style={{ fontSize: 15 }}>公益履历</Text>
-                        </View>
-                        <Text style={styles.smalltitle}>做最美的自己</Text>
-                    </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.touchPage}>
-                    <Image source={require('../data/img/server.png')} style={styles.imagestyle}></Image>
-                    <View >
-                        <View >
-                            <Text style={{ fontSize: 15 }}>博青秀服务</Text>
-                        </View>
-                        <Text style={styles.smalltitle}>记录证明</Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
-            <Text style={{ fontSize: 18 }}>   我的服务————————————————</Text>
-
+            <Text style={{ fontSize: 18, marginTop: 30, marginBottom: 10 }}>  我的服务————————————————</Text>
 
             <View style={styles.SecondService}>
                 <TouchableOpacity style={styles.secondTouch} onPress={() => prop.navigation.navigate('Infomation', mineDetail)}>
                     <Image source={require('../data/img/AK-MN_活动.png')} style={styles.imagestyle}></Image>
                     <Text style={styles.smalltitle}>基本信息</Text>
-
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondTouch} onPress={() => prop.navigation.navigate('ActivitySignup', mineDetail)}>
                     <Image source={require('../data/img/活动记录.png')} style={styles.imagestyle}></Image>
                     <Text style={styles.smalltitle}>已报名活动</Text>
-
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondTouch} onPress={() => prop.navigation.navigate('CompletedAct', mineDetail)}>
                     <Image source={require('../data/img/活动发布.png')} style={styles.imagestyle}></Image>
                     <Text style={styles.smalltitle}>已签到活动</Text>
-
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondTouch} onPress={() => prop.navigation.navigate('HelpCenter', mineDetail)}>
                     <Image source={require('../data/img/home_4.png')} style={styles.imagestyle}></Image>
                     <Text style={styles.smalltitle}>帮助中心</Text>
-
                 </TouchableOpacity>
             </View>
+
+            <TouchableOpacity onPress={() => exit()}
+                style={{
+                    marginTop: 30,
+                    borderRadius: 10,
+                    width: 200,
+                    height: 40,
+                    backgroundColor: "#9D98FF",
+                    justifyContent: "center",
+                    alignSelf: "center"
+                }}>
+                <Text style={styles.btnExit}>退出登录</Text>
+            </TouchableOpacity>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        //justifyContent: "center",
-        //alignItems: "center",
-        //marginLeft: 19,
-        //marginRight: 19,
-        // borderWidth: 1,
-        // borderColor: "black"
+        flex: 1
     },
     header: {
         width: "100%",
-        height: 50,
+        height: 70,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
@@ -206,7 +153,9 @@ const styles = StyleSheet.create({
     vTime: {
         alignSelf: 'center',
         fontSize: 20,
-        marginTop: 20
+        marginTop: 20,
+        marginBottom: 5,
+        color: "blue"
     },
     vTxt: {
         alignSelf: 'center',
@@ -253,10 +202,12 @@ const styles = StyleSheet.create({
         width: '22%',
         margin: 5,
     },
-
-
-
-
+    btnExit: {
+        textAlign: "center",
+        textAlignVertical: 'center',
+        color: "#FFF",
+        fontSize: 18
+    }
 });
 
 export default Mine;
