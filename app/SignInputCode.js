@@ -10,6 +10,9 @@ import {
 import GlobalInfo from "./GlobalInfo";
 import UserInformation from "./UserInformation";
 
+// 签到首界面  也要获取ip地址
+
+
 const SignInputCode = (prop) => {
     const [code, setCode] = useState();
     const [correct, isCorrect] = useState("");

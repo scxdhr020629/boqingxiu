@@ -18,12 +18,11 @@ import UserInformation from "./UserInformation";
 
 const { width, height } = Dimensions.get("screen");
 const Search = (prop) => {
-    const [searchContent, setSearchContent] = useState("");
+    const [searchContent, setSearchContent] = useState();
     const [searchClick, isSearchClick] = useState(false);
     const [data, setData] = useState();
     const [searchData, setSearchData] = useState();
 
-    /**搜索按钮响应 */
     const search = async (content) => {
         if (content === "") content = searchContent;
         var ip = UserInformation.ip;
@@ -50,7 +49,6 @@ const Search = (prop) => {
             })
     }
 
-    /**足迹按钮响应 */
     const clickHistory = async () => {
         isSearchClick(false);
         fetch(UserInformation.ip + 'selectRecord.php?userId=' + UserInformation.id)
@@ -60,13 +58,11 @@ const Search = (prop) => {
             })
     }
 
-    /**历史记录点击响应 */
     const clickRecord = (record) => {
         setSearchContent(record);
         search(record);
     }
 
-    /**历史记录陈列 */
     const scrollItem = () => {
         return (
             <View style={{ alignItems: "center", width: "100%" }}>
@@ -92,11 +88,10 @@ const Search = (prop) => {
         );
     }
 
-    /**搜索结果陈列 */
     const renderItem = (dataItem) => {
         return (
             <TouchableOpacity onPress={() => prop.navigation.navigate("ContentIntro", {
-                orgId: dataItem.item.orgId
+                name: dataItem.item.name
             })}>
                 <View style={styles.viewSearch}>
                     <View style={{ margin: 10 }}>
@@ -114,7 +109,6 @@ const Search = (prop) => {
         );
     }
 
-    /**搜索结果分界线 */
     const renderSeparator = () => {
         return (<View style={{
             height: 1,
@@ -122,7 +116,6 @@ const Search = (prop) => {
         }} />);
     }
 
-    /**历史记录视图 */
     const history = () => {
         if (searchClick === false)
             return (
@@ -140,7 +133,6 @@ const Search = (prop) => {
             );
     }
 
-    /**搜索结果视图 */
     const searchInfo = () => {
         if (searchClick === true)
             return (

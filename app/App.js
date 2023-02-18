@@ -25,6 +25,9 @@ import UserInformation from "./UserInformation";
 const Stack = createNativeStackNavigator();
 
 const App = () => {
+
+
+
   // 司晨旭编写开始
   /**
   * 获取地址
@@ -38,12 +41,19 @@ const App = () => {
     // console.log("获取到的信息( •̀ ω •́ )y" + UserInformation.userAddressNow);
   }
 
+  // useEffect(() => {
+  //   setInterval("getGeo()", "5000");
+  // }, []);
+
   //设置每过几秒获取一次
   useEffect(() => {
     const interval = setInterval(getGeo, 5000); // 每隔5分钟執行 loadData 這個 function,后来还是改成了5s
 
     return () => clearInterval(interval);
   }, []);
+
+
+
   //司晨旭编写结束
 
   return (

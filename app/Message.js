@@ -19,7 +19,6 @@ const Message = (prop) => {
     const [data, setData] = useState([]);
     const [refreshing, isRefresh] = useState(true);
 
-    /**消息对象 */
     const renderItem = (dataItem) => {
         return (
             <TouchableOpacity onPress={() => prop.navigation.navigate("Chat", {
@@ -43,13 +42,14 @@ const Message = (prop) => {
         );
     }
 
-    /**分割线 */
     const renderSeparator = () => {
         return (<View style={{
             height: 1,
             backgroundColor: "#EEE",
         }} />);
     }
+
+
 
     /** 从数据库获取数据，包括头像，名称，时间，最新消息，未读消息等等，大概要两张表，一张用在消息界面，一张用在聊天界面 */
     const gainMessages = async (userId) => {
@@ -106,6 +106,7 @@ const Message = (prop) => {
                         orgName = resJson[0].orgName;
                     }
                 }).catch(e => console.log(e));
+
             var unReadNum;
             await fetch(ip + 'selectTheCountOfUnReadMessage.php?userId=' + userId + '&otherId=' + otherUserId)
                 .then(res => res.json())
@@ -152,7 +153,6 @@ const Message = (prop) => {
         isRefresh(false);
     }
 
-    /**未读消息角标 */
     const unread = (num) => {
         if (num != 0)
             return (
@@ -162,7 +162,6 @@ const Message = (prop) => {
             );
     }
 
-    /**清空未读消息角标 */
     const clearUnread = () => {
         let newData = [...data];
         newData = newData.map((value) => {
@@ -176,9 +175,10 @@ const Message = (prop) => {
     }
 
     useEffect(() => {
-        gainMessages(UserInformation.id);
-        const interval = setInterval(gainMessages, 5000); // 每隔5分钟執行 loadData 這個 function
 
+        // const interval = setInterval(gainMessages, 5000); // 每隔5分钟執行 loadData 這個 function
+        gainMessages();
+        const interval = setInterval(gainMessages, 5000); // 每隔5分钟執行 loadData 這個 function
         return () => clearInterval(interval);
     }, []);
 

@@ -20,8 +20,6 @@ const Chat = ({ route, navigation }) => {
     const [nowMsg, setNowMsg] = useState("");
     // const { name } = route.params;
     const { orgId } = route.params;
-
-    /**聊天内容 */
     const renderItem = (dataItem) => {
         if (dataItem.item.meId === UserInformation.id)
             return (
@@ -103,8 +101,8 @@ const Chat = ({ route, navigation }) => {
                 .then(resJson => {
                     if (resJson.length != 0) {
                         meName = resJson[0].name
-                        // imgSource = resJson[0].imgSource;
-                        imgSource = "http://101.34.44.163:8080/boqingxiu/img/organization1.png";
+                        imgSource = resJson[0].imgSource;
+                        // imgSource = "http://101.34.44.163:8080/boqingxiu/img/organization1.png";
                     }
                 }).catch(e => console.log(e));
             await fetch(ip + 'selectUserByUserId.php?id=' + youId)
@@ -123,11 +121,12 @@ const Chat = ({ route, navigation }) => {
         }
         setData([...newData]);
     }
-
     useEffect(() => {
+        // console.log("使用useEffect");
+        // fetchData();
+        // const interval = setInterval(fetchData, 5000); // 每隔5分钟執行 loadData 這個 function
         fetchData();
-        const interval = setInterval(fetchData, 5000); // 每隔5分钟執行 loadData 這個 function
-
+        const interval = setInterval(fetchData, 5000); // 每隔5s執行 loadData 這個 function
         return () => clearInterval(interval);
     }, []);
 
