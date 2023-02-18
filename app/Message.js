@@ -175,8 +175,9 @@ const Message = (prop) => {
 
     useEffect(() => {
 
+        // const interval = setInterval(gainMessages, 5000); // 每隔5分钟執行 loadData 這個 function
+        gainMessages();
         const interval = setInterval(gainMessages, 5000); // 每隔5分钟執行 loadData 這個 function
-
         return () => clearInterval(interval);
     }, []);
 

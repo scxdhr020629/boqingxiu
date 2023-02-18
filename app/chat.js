@@ -124,8 +124,9 @@ const Chat = ({ route, navigation }) => {
     useEffect(() => {
         // console.log("使用useEffect");
         // fetchData();
+        // const interval = setInterval(fetchData, 5000); // 每隔5分钟執行 loadData 這個 function
+        fetchData();
         const interval = setInterval(fetchData, 5000); // 每隔5分钟執行 loadData 這個 function
-
         return () => clearInterval(interval);
     }, []);
 
